@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_ANDROID_NDK "C:/Users/yannickyang/AppData/Local/Android/Sdk/ndk/22.0.7026061")
+set(CMAKE_ANDROID_NDK ${ANDROID_NDK_ROOT})
 
 #编译平台
 set(CMAKE_SYSTEM_NAME Android)
