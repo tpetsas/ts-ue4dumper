@@ -1,5 +1,5 @@
 import * as OFFSET from "./offset.js";
-import { getLocalPlayer, getUObjectBaseObjectFromId, getObjectCount, writeStruct, file, getFNameFromID } from "./utils.js"
+import { getLocalPlayer, getUObjectBaseObjectFromId, getObjectCount, writeStruct, getFNameFromID } from "./utils.js"
 import { UObject } from "./struct.js";
 
 function testOffset(pointer: NativePointer, baseOffset: number) {
@@ -16,6 +16,7 @@ function testOffset(pointer: NativePointer, baseOffset: number) {
  *  */
 export function dumpActorName(GWorld: NativePointer, GNames: NativePointer, isGetLocalActor: boolean = false) {
 
+    console.log("dumpActorName called!")
     var Level = GWorld.add(OFFSET.offset_UWorld_PersistentLevel).readPointer()
     console.log("Level :", Level)
 
