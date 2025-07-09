@@ -4,7 +4,7 @@ import { UStructProperty, UObjectProperty, FProperty, UClassProperty, UInterface
 import { FFieldPointer, UClassPointer, UObjectPointer, UStructPointer, FPropertyPointer, UEnumPointer, UEnumPropertyPointer, UFiledPointer } from "./struct.js"
 import { EFunctionFlags, EPropertyFlags, funcFlags } from "./struct.js";
 
-export var file = new File('/sdcard/dump.txt', 'w');
+//export var file = new File('/sdcard/dump.txt', 'w');
 var UObjectPropertyList = ["ObjectProperty", "WeakObjectProperty", "LazyObjectProperty", "AssetObjectProperty", "SoftObjectProperty"]
 var MetaClassList = ["ClassProperty", "AssetClassProperty", "SoftClassProperty"]
 
@@ -208,16 +208,16 @@ export function writeByteProperty(GName: NativePointer, prop: FFieldPointer) {
 
     if (UObject.isValid(enumObj)) {
         var enumName = UByteProperty.getName(GName, prop);
-        file.write(`\tenum ${enumName} ${thisFieldName} { //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+        console.log(`\tenum ${enumName} ${thisFieldName} { //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         for (var count = 0; count < UEnum.getCount(enumObj); count++) {
             var index = UEnum.getTpairArray(enumObj).add(count * OFFSET.enumItemSize).readU32();
 
             var value = UEnum.getTpairArray(enumObj).add(count * OFFSET.enumItemSize + OFFSET.FName_Size).readU64().toString(16);
-            file.write(`\t\t${(getFNameFromID(GName, index) as string).replace(enumName + "::", "")} = ${value}\n`)
+            console.log(`\t\t${(getFNameFromID(GName, index) as string).replace(enumName + "::", "")} = ${value}\n`)
         }
-        file.write("\t};\n")
+        console.log("\t};\n")
     } else {
-        file.write(`\tbyte ${thisFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+        console.log(`\tbyte ${thisFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
     }
 }
 
@@ -227,15 +227,15 @@ export function writeEnumProperty(GName: NativePointer, prop: FFieldPointer) {
     var enumName = UEnumProperty.getName(GName, prop);
 
     var enumObj = UEnumProperty.getEnum(prop);
-    file.write(`\tenum ${enumName} ${thisFieldName} { //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+    console.log(`\tenum ${enumName} ${thisFieldName} { //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
     for (var count = 0; count < UEnum.getCount(enumObj); count++) {
         // console.log(UEnum.getTpairArray(enumObj));
         var index = UEnum.getTpairArray(enumObj).add(count * OFFSET.enumItemSize).readU32();
         var value = UEnum.getTpairArray(enumObj).add(count * OFFSET.enumItemSize + OFFSET.FName_Size).readU64().toString(16);
 
-        file.write(`\t\t${(getFNameFromID(GName, index) as string).replace(enumName + "::", "")} = ${value}\n`)
+        console.log(`\t\t${(getFNameFromID(GName, index) as string).replace(enumName + "::", "")} = ${value}\n`)
     }
-    file.write("\t};\n")
+    console.log("\t};\n")
 }
 
 export function writeStructChild(GName: NativePointer, children: FFieldPointer) {
@@ -251,91 +251,91 @@ export function writeStructChild(GName: NativePointer, children: FFieldPointer) 
 
         if (UObjectPropertyList.includes(className)) {
             var propertyClass = UObjectProperty.getPropertyClass(prop);
-            file.write(`\t${UObject.getName(GName, propertyClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${UObject.getName(GName, propertyClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
 
         else if (MetaClassList.includes(className)) {
             var metaClass = UClassProperty.getMetaClass(prop);
-            file.write(`\t${UObject.getName(GName, metaClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${UObject.getName(GName, metaClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
 
         else if (className === "InterfaceProperty") {
             var interfaceClass = UInterfaceProperty.getInterfaceClass(prop);
-            file.write(`\tinterface class ${UObject.getName(GName, interfaceClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`)
+            console.log(`\tinterface class ${UObject.getName(GName, interfaceClass)}* ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`)
         }
 
         else if (className === "StructProperty") {
             var Struct = UStructProperty.getStruct(prop);
-            file.write(`\t${UObject.getName(GName, Struct)} ${className}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${UObject.getName(GName, Struct)} ${className}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
             recurrce.push(Struct);
         }
 
         else if (className === "ArrayProperty") {
-            file.write(`\t${resolveProp(GName, recurrce, UArrayProperty.getInner(prop))}[] ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${resolveProp(GName, recurrce, UArrayProperty.getInner(prop))}[] ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
 
         }
         else if (className === "SetProperty") {
-            file.write(`\t${resolveProp(GName, recurrce, USetProperty.getElementProp(prop))} ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${resolveProp(GName, recurrce, USetProperty.getElementProp(prop))} ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
 
         else if (className === "MapProperty") {
-            file.write(`\t<${resolveProp(GName, recurrce, UMapProperty.getKeyProp(prop))}, ${resolveProp(GName, recurrce, UMapProperty.getValueProp(prop))}> ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t<${resolveProp(GName, recurrce, UMapProperty.getKeyProp(prop))}, ${resolveProp(GName, recurrce, UMapProperty.getValueProp(prop))}> ${thiFieldName}; //[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "BoolProperty") {
-            file.write(`\tbool ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tbool ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "ByteProperty") {
             writeByteProperty(GName, prop);
         }
         else if (className === "IntProperty") {
-            file.write(`\tint ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tint ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "Int8Property") {
-            file.write(`\tint8 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tint8 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "Int16Property") {
-            file.write(`\tint16 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tint16 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "Int32Property") {
-            file.write(`\tint32 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tint32 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "Int64Property") {
-            file.write(`\tint64 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tint64 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "UInt16Property") {
-            file.write(`\tuint16 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tuint16 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "UInt32Property") {
-            file.write(`\tuint32 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tuint32 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "UInt64Property") {
-            file.write(`\tuint64 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tuint64 ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "FloatProperty") {
-            file.write(`\tfloat ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tfloat ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "DoubleProperty") {
-            file.write(`\tdouble ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tdouble ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "EnumProperty") {
             writeEnumProperty(GName, prop);
         }
         else if (className === "TextProperty") {
-            file.write(`\tFText ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tFText ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "NameProperty") {
-            file.write(`\tFName ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tFName ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "DelegateProperty" || className === "MulticastDelegateProperty" || className === "MulticastInlineDelegateProperty" || className === "MulticastSparseDelegateProperty") {
-            file.write(`\tdelegate ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tdelegate ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else if (className === "XigPtrProperty") {
-            file.write(`\tXigPtr ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\tXigPtr ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`);
         }
         else {
-            file.write(`\t${className} ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`)
+            console.log(`\t${className} ${thiFieldName}; \t//[Offset: ${ptr(FProperty.getOffset(prop))}, Size: ${FProperty.getElementSize(prop)}]\n`)
         }
-        file.flush();
+        //file.flush();
         child = FField.getNext(child);
 
     }
@@ -397,15 +397,15 @@ export function writeStructFunc(GName: NativePointer, children: UFiledPointer) {
                 }
             }
             // for(let mapping of EFunctionFlags)
-            file.write(`\t${returnVal} ${thisFieldName}(${params}); //Addr ${UFunction.getFunc(prop)} ${flags !== "" ? ("[" + flags.slice(0, -1) + "]") : ""} ${("// UFieldProperty addr: " + children)}\n`);
+            console.log(`\t${returnVal} ${thisFieldName}(${params}); //Addr ${UFunction.getFunc(prop)} ${flags !== "" ? ("[" + flags.slice(0, -1) + "]") : ""} ${("// UFieldProperty addr: " + children)}\n`);
         }
         else if (className === "Class" || className === "Package") {
         }
         else {
-            file.write(`\t${className} ${thisFieldName}; //[Size: ${FProperty.getElementSize(prop)}]\n`);
+            console.log(`\t${className} ${thisFieldName}; //[Size: ${FProperty.getElementSize(prop)}]\n`);
 
         }
-        file.flush()
+        //file.flush()
         children = UField.getNext(children);
     }
 }
@@ -420,14 +420,14 @@ export function writeStruct(GName: NativePointer, clazz: UClassPointer, isActorD
 
     if (isActorDump) {
         if (UStruct.getStructClassPath(GName, currStruct) === "Actor.Object") {
-            file.write(`Name: ${name}, Addr: ${currStruct}\n`);
+            console.log(`Name: ${name}, Addr: ${currStruct}\n`);
             writeStructChild(GName, UStruct.getChildProperties(currStruct))
             writeStructFunc(GName, UStruct.getChildren(currStruct))
             return;
         }
     }
     else {
-        file.write(`Class: ${UStruct.getStructClassPath(GName, currStruct)}, Addr: ${currStruct}\n`);
+        console.log(`Class: ${UStruct.getStructClassPath(GName, currStruct)}, Addr: ${currStruct}\n`);
         writeStructChild(GName, UStruct.getChildProperties(currStruct))
         writeStructFunc(GName, UStruct.getChildren(currStruct))
     }
